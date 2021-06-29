@@ -1,0 +1,49 @@
+- name: add google chrome repo
+  yum_repository:
+    name: google-chrome
+    description: google chrome yum repo
+    baseurl: http://dl.google.com/linux/chrome/rpm/stable/$basearch
+    gpgcheck: yes
+    enabled: yes
+  become: yes
+
+- name: import google chrome signing key
+  rpm_key:
+    key: https://dl.google.com/linux/linux_signing_key.pub
+    fingerprint: 4CCA 1EAF 950C EE4A B839 76DC A040 830F 7FAC 5991
+    state: present
+  become: yes
+
+- name: install google chrome
+  yum:
+    name: google-chrome-stable
+    state: present
+  become: yes
+
+- name: check for chromedriver
+  stat:
+    path: '/tmp/chromedriver_linux64.zip'
+  register: chromedriver_result
+
+- name: download chromedriver from remote
+  get_url:
+    url: https://chromedriver.storage.googleapis.com/91.0.4472.101/chromedriver_linux64.zip
+    dest: '/tmp/chromedriver_linux64.zip'
+    checksum: sha1:0c5d471b0303adc1193bb51072a5ef79aed54b53
+    timeout: 120
+  when: not chromedriver_result.stat.exists
+
+- name: extract chromedriver
+  unarchive:
+    src: '/tmp/chromedriver_linux64.zip'
+    dest: /usr/local/share/
+    remote_src: yes
+    mode: a+x
+  become: yes
+
+- name: create symbolic link for chromedriver
+  file:
+    src: '/usr/local/share/chromedriver'
+    dest: '/usr/bin/chromedriver'
+    state: link
+  become: yes

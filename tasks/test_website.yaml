@@ -1,0 +1,6 @@
+- name: test {{ test_script | replace("_", " ") }}
+  command: '{{ virtualenv }}/bin/python3 {{ code_path }}{{ test_script }}.py'
+  args:
+    chdir: '{{ code_path }}'
+  register: test_output
+  ignore_errors: yes
